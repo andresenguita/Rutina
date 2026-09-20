@@ -55,9 +55,9 @@ h1{font-size:28px; font-weight:700; line-height:1.05; margin:0; letter-spacing:-
 
 /* tabs: arriba y pegajosas (funcionan en cualquier navegador) */
 .tabs{position:sticky; top:env(safe-area-inset-top,0px); z-index:10;
-      background:var(--paper); padding-block:8px 10px; display:flex; gap:6px}
+      background:var(--paper); padding-block:8px 10px; display:flex; gap:5px}
 .tabs button{flex:1; border:1px solid var(--line); background:var(--card); color:var(--ink-2);
-             border-radius:11px; padding:11px 4px; font-size:13px; font-weight:600;
+             border-radius:11px; padding:11px 2px; font-size:12.5px; font-weight:600;
              font-family:var(--f); cursor:pointer; line-height:1.2; -webkit-tap-highlight-color:transparent}
 .tabs button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
 
@@ -129,6 +129,20 @@ li.done .txt{color:var(--ink-3); text-decoration:line-through}
 .tagline:first-child{border-top:0}
 .tagline span{flex:1; min-width:0}
 .hint{font-size:12.5px; color:var(--ink-3); margin:8px 2px 0}
+
+/* tareas */
+.nueva{display:flex; gap:8px; margin-bottom:10px}
+.nueva input{flex:1; min-width:0; border:1px solid var(--line); background:var(--card);
+             color:var(--ink); border-radius:11px; padding:12px 13px; font-size:16px;
+             font-family:var(--f); outline:none}
+.nueva input:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+.nueva input::placeholder{color:var(--ink-3)}
+.nueva button{flex:none; border:0; background:var(--accent); color:var(--on-accent);
+              border-radius:11px; padding:0 18px; font-size:15px; font-weight:600;
+              font-family:var(--f); cursor:pointer}
+.vacio{text-align:center; color:var(--ink-3); font-size:14.5px; padding:22px 10px 18px}
+.sep{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+     color:var(--ink-3); padding:16px 0 4px; border-top:1px solid var(--line); margin-top:6px}
 </style>
 </head>
 <body>
@@ -141,6 +155,7 @@ li.done .txt{color:var(--ink-3); text-decoration:line-through}
 
   <div class="tabs" id="tabs">
     <button data-v="hoy" aria-pressed="true">Hoy</button>
+    <button data-v="tareas" aria-pressed="false">Tareas</button>
     <button data-v="semana" aria-pressed="false">Semana</button>
     <button data-v="compra" aria-pressed="false">Compra</button>
     <button data-v="casa" aria-pressed="false">Casa</button>
@@ -171,6 +186,9 @@ var DEFAULTS = {
     {k:"D",n:"Domingo",acts:[{t:"Escalar",c:"sport"},{t:"Limpiezas",c:"clean"},{t:"Compra C",c:"shop"}],
      meals:{d:"Yogur completo",c:"¡NUEVO! — plato de la semana",e:"Arroz + cebolla + champis + contramuslos"}}
   ],
+  todos:[{t:"Renovar el seguro de la bici",done:false},
+         {t:"Pedir cita con el fisio",done:false},
+         {t:"Devolver el libro a Marta",done:true}],
   today:[{h:"13:00",t:"Compra"},{h:"14:00",t:"Cocinar y comer"},{h:"20:00",t:"Cenar"},{h:"23:00",t:"Dormir"}],
   prep:[{t:"Sacar del congelador lo de mañana",done:false},{t:"Mirar la nevera antes de comprar",done:false}],
   lists:[
@@ -375,17 +393,49 @@ function vCasa(){
   return h;
 }
 
-var TITLES={hoy:"Hoy",semana:"La semana",compra:"Compra",casa:"Casa"};
+function vTareas(){
+  var pend=[], hech=[];
+  state.todos.forEach(function(t,i){ (t.done?hech:pend).push(i); });
+  var h='<div class="nueva">'+
+        '<input id="nueva-tarea" type="text" placeholder="Nueva tarea" '+
+        'autocomplete="off" autocapitalize="sentences" enterkeyhint="done">'+
+        '<button data-a="add-todo">Añadir</button></div>';
+  h+='<div class="card">';
+  if(!state.todos.length){
+    h+='<div class="vacio">Sin tareas. Escribe una arriba.</div>';
+  }else{
+    h+='<ul>'+pend.map(fila).join('')+'</ul>';
+    if(hech.length){
+      h+='<div class="sep">Hechas · '+hech.length+'</div><ul>'+hech.map(fila).join('')+'</ul>'+
+         '<button class="mini" data-a="clear-todos">Borrar las hechas</button>';
+    }
+    if(!pend.length) h+='<div class="vacio">Nada pendiente. Bien ahí.</div>';
+  }
+  h+='</div>';
+  return h;
+  function fila(i){
+    var t=state.todos[i];
+    return '<li class="row'+(t.done?" done":"")+'">'+chk("todos."+i+".done",t.done)+
+      '<span class="txt">'+ed("todos."+i+".t",t.t)+'</span>'+del("todos",i)+'</li>';
+  }
+}
+
+var TITLES={hoy:"Hoy",tareas:"Tareas",semana:"La semana",compra:"Compra",casa:"Casa"};
 var SUBS={semana:"Toca cualquier texto para editarlo",compra:"Marca según vas cogiendo",
           casa:"Limpieza y batch cooking"};
+function subTareas(){
+  var n=state.todos.filter(function(t){return !t.done;}).length;
+  return n===0?"Todo hecho":(n===1?"1 pendiente":n+" pendientes");
+}
 function render(){
   var d=state.days[todayIdx], i, b=document.querySelectorAll(".tabs button");
   document.getElementById("title").textContent = view==="hoy" ? d.n : TITLES[view];
   document.getElementById("sub").textContent = view==="hoy"
     ? new Date().toLocaleDateString("es-ES",{day:"numeric",month:"long"})
-    : (SUBS[view]||"");
+    : (view==="tareas" ? subTareas() : (SUBS[view]||""));
   document.getElementById("view").innerHTML =
-    view==="hoy"?vHoy(): view==="semana"?vSemana(): view==="compra"?vCompra(): vCasa();
+    view==="hoy"?vHoy(): view==="tareas"?vTareas():
+    view==="semana"?vSemana(): view==="compra"?vCompra(): vCasa();
   for(i=0;i<b.length;i++) b[i].setAttribute("aria-pressed", b[i].getAttribute("data-v")===view?"true":"false");
 }
 
@@ -421,6 +471,11 @@ document.addEventListener("click",function(ev){
   if(a==="uncheck"){ get(p).forEach(function(x){x.done=false;}); render(); save(); return; }
   if(a==="uncheck-clean"){ var f=b.getAttribute("data-f");
     state.clean.forEach(function(c){ if(c.f===f) c.done=false; }); render(); save(); return; }
+  if(a==="add-todo"){ addTodo(); return; }
+  if(a==="clear-todos"){
+    state.todos=state.todos.filter(function(t){ return !t.done; });
+    render(); save(); return;
+  }
   if(a==="export"){ doExport(); return; }
   if(a==="import"){ document.getElementById("importer").click(); return; }
   if(a==="reset"){
@@ -429,6 +484,23 @@ document.addEventListener("click",function(ev){
     return;
   }
 },false);
+
+function addTodo(){
+  var inp=document.getElementById("nueva-tarea");
+  if(!inp) return;
+  var v=inp.value.replace(/\s+/g," ").trim();
+  if(!v){ inp.focus(); return; }
+  state.todos.unshift({t:v,done:false});
+  inp.value="";
+  render(); save();
+  var n=document.getElementById("nueva-tarea");
+  if(n) n.focus();
+}
+document.addEventListener("keydown",function(ev){
+  if(ev.key==="Enter" && ev.target && ev.target.id==="nueva-tarea"){
+    ev.preventDefault(); addTodo();
+  }
+});
 
 function focusLast(p){ focusSel('[data-p="'+p+"."+(get(p).length-1)+'.t"]'); }
 function focusSel(s){
@@ -487,7 +559,7 @@ document.getElementById("importer").addEventListener("change",function(ev){
 /* ---------------- arranque ---------------- */
 function migrate(s){
   if(!s||!s.days||!s.lists) return null;
-  ["today","prep","clean","batch","ideas"].forEach(function(k){ if(!s[k]) s[k]=clone(DEFAULTS[k]); });
+  ["today","prep","clean","batch","ideas","todos"].forEach(function(k){ if(!s[k]) s[k]=clone(DEFAULTS[k]); });
   return s;
 }
 try{
