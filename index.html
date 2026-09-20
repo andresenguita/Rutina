@@ -209,10 +209,15 @@ ul{list-style:none; margin:0; padding:0}
 .dia{font-size:12.5px; font-weight:700; color:var(--accent); padding:14px 0 2px;
      border-top:1px solid var(--line); margin-top:6px}
 .dia:first-child{border-top:0; margin-top:0; padding-top:0}
-.ajuste{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-2);
-        margin-top:12px; flex-wrap:wrap}
-.ajuste select{border:1px solid var(--line); background:var(--card); color:var(--ink);
-               border-radius:9px; padding:7px 9px; font-size:13px; font-family:var(--f)}
+.pip{width:9px; height:9px; border-radius:50%; flex:none; display:block}
+.pip-ev{background:var(--c-agenda)}
+.pip-td{background:transparent; border:2px solid var(--c-tareas); border-radius:3px;
+        width:11px; height:11px}
+.leyenda{display:flex; gap:16px; align-items:center; font-size:12px; color:var(--ink-3);
+         margin-top:12px; flex-wrap:wrap}
+.leyenda span{display:inline-flex; align-items:center; gap:6px}
+.esTarea .box{border-color:var(--c-tareas)}
+.esTarea.done .box{background:var(--c-tareas); border-color:var(--c-tareas)}
 </style>
 </head>
 <body>
@@ -245,7 +250,6 @@ function isoDe(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.ge
 function enDias(n){ var d=new Date(); d.setDate(d.getDate()+n); return isoDe(d); }
 
 var DEFAULTS = {
-  avisoAntes:10,
   days:[
     {k:"L",n:"Lunes",acts:[{t:"Correr",c:"sport"},{t:"Cocinar",c:"cook"}],
      meals:{d:"Yogur completo",c:"Crema + pasta con atún",e:"Crema + arroz y contramuslos"}},
@@ -352,57 +356,6 @@ function fechaLarga(iso){
   return s.charAt(0).toUpperCase()+s.slice(1);
 }
 
-/* ---------- avisos: se crean en el calendario del propio móvil ---------- */
-function campana(attrs,activo,off){
-  return '<button class="bell'+(activo?" on":"")+'" '+attrs+(off?' disabled':'')+
-    ' aria-label="Crear aviso"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" '+
-    'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+
-    '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/>'+
-    '<path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>';
-}
-function escICS(s){ return String(s).replace(/([,;\\])/g,"\\$1").replace(/\r?\n/g,"\\n"); }
-function sello(d){
-  return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+"T"+
-         pad2(d.getHours())+pad2(d.getMinutes())+"00";
-}
-function textoICS(titulo,cuando,antes){
-  var fin=new Date(cuando.getTime()+30*60000);
-  var uid=Date.now()+"-"+Math.random().toString(36).slice(2)+"@semanabase";
-  var L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Semana Base//ES","CALSCALE:GREGORIAN",
-         "BEGIN:VEVENT","UID:"+uid,"DTSTAMP:"+sello(new Date()),
-         "DTSTART:"+sello(cuando),"DTEND:"+sello(fin),"SUMMARY:"+escICS(titulo)];
-  L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+escICS(titulo),
-         "TRIGGER:-PT"+(antes||0)+"M","END:VALARM");
-  L.push("END:VEVENT","END:VCALENDAR");
-  return L.join("\r\n");
-}
-function crearAviso(titulo,iso,hora){
-  if(!titulo){ window.alert("Ponle nombre antes de crear el aviso."); return; }
-  var p=String(iso||"").split("-");
-  if(p.length!==3){ window.alert("Falta la fecha."); return; }
-  var m=mins(hora||"09:00");
-  var cuando=new Date(+p[0],+p[1]-1,+p[2],Math.floor(m/60),m%60,0);
-  var txt=textoICS(titulo,cuando,state.avisoAntes);
-  var blob=new Blob([txt],{type:"text/calendar;charset=utf-8"});
-  var nombre=(titulo.replace(/[^0-9A-Za-zÁÉÍÓÚÑáéíóúñ ]/g,"").trim().slice(0,30)||"aviso")+".ics";
-  try{
-    if(window.File && navigator.canShare){
-      var file=new File([blob],nombre,{type:"text/calendar"});
-      if(navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:titulo}).catch(function(){});
-        return;
-      }
-    }
-  }catch(e){}
-  try{
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement("a");
-    a.href=url; a.download=nombre;
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },800);
-  }catch(e){ window.alert("Este navegador no deja crear el archivo del aviso."); }
-}
-
 function calendario(attrs,activo){
   return '<button class="bell'+(activo?" on":"")+'" '+attrs+
     ' aria-label="Poner fecha y hora"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" '+
@@ -436,7 +389,7 @@ function mealRow(label,path,val){
 }
 
 function vHoy(){
-  var d=state.days[todayIdx], h="", j, hoy=isoDe(new Date());
+  var d=state.days[todayIdx], h="", j;
   h+='<div class="card"><div class="chips">';
   for(j=0;j<d.acts.length;j++){
     h+='<span class="chip c-'+d.acts[j].c+'">'+ed("days."+todayIdx+".acts."+j+".t",d.acts[j].t)+
@@ -453,12 +406,9 @@ function vHoy(){
   state.today.forEach(function(r,i){
     h+='<li class="row"><span class="hour">'+ed("today."+i+".h",r.h)+'</span>'+
        '<span class="txt">'+ed("today."+i+".t",r.t)+'</span>'+
-       campana('data-a="ics-hoy" data-i="'+i+'"')+
        del("today",i)+'</li>';
   });
-  h+='</ul><button class="btn" data-a="add-today">+ Añadir hora</button>'+
-     '<p class="hint">La campana crea el aviso en el calendario del móvil, para hoy ('+
-     fechaLarga(hoy).toLowerCase()+') a esa hora.</p></div>';
+  h+='</ul><button class="btn" data-a="add-today">+ Añadir hora</button></div>';
 
   h+='<h2>Antes de dormir</h2><div class="card"><ul>';
   state.prep.forEach(function(p,i){
@@ -487,37 +437,53 @@ function vTareas(){
          '<button class="mini" data-a="clear-todos">Borrar las hechas</button>';
     }
   }
-  h+='</div>'+ajusteAviso();
+  h+='</div>';
   return h;
 
   function fila(i){
-    var t=state.todos[i], abierto=t.o||t.f;
+    var t=state.todos[i];
     var s='<li class="row'+(t.done?" done":"")+'">'+chk("todos."+i+".done",t.done)+
       '<span class="txt">'+ed("todos."+i+".t",t.t)+'</span>';
-    if(t.f && !abierto) s+='<span class="marca">'+esc(t.f.slice(8)+"/"+t.f.slice(5,7))+'</span>';
+    if(t.f && !t.o) s+='<span class="marca">'+esc(cortaFecha(t.f)+" · "+normHour(t.h||"09:00"))+'</span>';
     s+=calendario('data-a="abrir-cuando" data-i="'+i+'"', !!t.f)+del("todos",i);
-    if(abierto){
+    if(t.o){
       s+='<div class="cuando">'+
          '<input type="date" data-p="todos.'+i+'.f" value="'+esc(t.f||"")+'">'+
-         '<input type="time" data-p="todos.'+i+'.h" value="'+esc(t.h||"09:00")+'">'+
-         campana('data-a="ics-todo" data-i="'+i+'"', false, !t.f)+
-         '<button class="quitar" data-a="cerrar-cuando" data-i="'+i+'">quitar</button>'+
+         '<input type="time" data-p="todos.'+i+'.h" value="'+esc(normHour(t.h||"09:00"))+'">'+
+         (t.f?'<button class="quitar" data-a="quitar-fecha" data-i="'+i+'">quitar fecha</button>':"")+
          '</div>';
     }
     s+='</li>';
     return s;
   }
 }
+function cortaFecha(iso){
+  var p=String(iso||"").split("-");
+  return p.length===3 ? p[2]+"/"+p[1] : "";
+}
+
+/* La agenda junta los eventos con las tareas que tienen fecha. */
+function agendaItems(){
+  var lista=[];
+  state.eventos.forEach(function(e,i){
+    if(e.f) lista.push({tipo:"ev", i:i, f:e.f, h:normHour(e.h||"00:00"), t:e.t});
+  });
+  state.todos.forEach(function(t,i){
+    if(t.f && !t.done) lista.push({tipo:"td", i:i, f:t.f, h:normHour(t.h||"09:00"), t:t.t});
+  });
+  lista.sort(function(a,b){
+    var ka=a.f+"T"+a.h, kb=b.f+"T"+b.h;
+    return ka<kb?-1:(ka>kb?1:0);
+  });
+  return lista;
+}
 
 function vAgenda(){
-  var ahora=new Date(), hoy=isoDe(ahora);
-  var orden=state.eventos.map(function(e,i){ return {i:i,k:(e.f||"9999-99-99")+"T"+normHour(e.h||"00:00")}; });
-  orden.sort(function(a,b){ return a.k<b.k?-1:(a.k>b.k?1:0); });
-  var futuros=[], pasados=[];
-  orden.forEach(function(o){
-    var e=state.eventos[o.i];
-    ((e.f||"") < hoy ? pasados : futuros).push(o.i);
-  });
+  var hoy=isoDe(new Date());
+  var todo=agendaItems();
+  var futuros=todo.filter(function(o){ return o.f>=hoy; });
+  var pasados=todo.filter(function(o){ return o.f<hoy; });
+  var sinFecha=state.todos.filter(function(t){ return !t.f && !t.done; }).length;
 
   var h='<div class="nueva">'+
         '<input id="nuevo-evento" type="text" placeholder="Nuevo evento" '+
@@ -529,42 +495,47 @@ function vAgenda(){
 
   h+='<div class="card">';
   if(!futuros.length && !pasados.length){
-    h+='<div class="vacio">Sin eventos todavía.</div>';
+    h+='<div class="vacio">Nada en la agenda todavía.</div>';
   }else{
     if(!futuros.length) h+='<div class="vacio">Nada por delante.</div>';
     var dia="";
-    futuros.forEach(function(i){
-      var e=state.eventos[i];
-      if(e.f!==dia){ dia=e.f; h+='<div class="dia">'+esc(fechaLarga(e.f))+'</div>'; }
-      h+=filaEv(i,e);
+    futuros.forEach(function(o){
+      if(o.f!==dia){ dia=o.f; h+='<div class="dia">'+esc(fechaLarga(o.f))+'</div>'; }
+      h+=filaAg(o);
     });
     if(pasados.length){
       h+='<div class="sep">Pasados · '+pasados.length+'</div>';
-      pasados.forEach(function(i){ h+=filaEv(i,state.eventos[i],true); });
-      h+='<button class="mini" data-a="clear-eventos">Borrar los pasados</button>';
+      pasados.forEach(function(o){ h+=filaAg(o,true); });
+      h+='<button class="mini" data-a="clear-eventos">Borrar eventos pasados</button>';
     }
   }
-  h+='</div>'+ajusteAviso();
+  h+='</div>';
+  h+='<div class="leyenda"><span><i class="pip pip-ev"></i>Evento</span>'+
+     '<span><i class="pip pip-td"></i>Tarea con fecha</span></div>';
+  if(sinFecha){
+    h+='<p class="hint">Tienes '+sinFecha+(sinFecha===1?' tarea sin fecha':' tareas sin fecha')+
+       '. Ponles día y hora con el icono de calendario en la pestaña Tareas y aparecen aquí.</p>';
+  }
+  h+='<p class="hint">En las tareas, la × solo les quita la fecha: la tarea sigue en su pestaña.</p>';
   return h;
 
-  function filaEv(i,e,viejo){
-    return '<div class="row">'+
-      '<span class="hour">'+ed("eventos."+i+".h",normHour(e.h))+'</span>'+
-      '<span class="txt"'+(viejo?' style="color:var(--ink-3)"':'')+'>'+ed("eventos."+i+".t",e.t)+'</span>'+
-      campana('data-a="ics-evento" data-i="'+i+'"')+
-      del("eventos",i)+'</div>';
+  function filaAg(o,viejo){
+    var gris=viejo?' style="color:var(--ink-3)"':'';
+    if(o.tipo==="ev"){
+      return '<div class="row">'+
+        '<span class="hour">'+ed("eventos."+o.i+".h",o.h)+'</span>'+
+        '<i class="pip pip-ev"></i>'+
+        '<span class="txt"'+gris+'>'+ed("eventos."+o.i+".t",o.t)+'</span>'+
+        del("eventos",o.i)+'</div>';
+    }
+    var t=state.todos[o.i];
+    return '<div class="row esTarea'+(t.done?" done":"")+'">'+
+      '<span class="hour">'+ed("todos."+o.i+".h",o.h)+'</span>'+
+      chk("todos."+o.i+".done",t.done)+
+      '<span class="txt"'+gris+'>'+ed("todos."+o.i+".t",o.t)+'</span>'+
+      '<button class="x" data-a="quitar-fecha" data-i="'+o.i+'" '+
+      'aria-label="Quitar de la agenda">&times;</button></div>';
   }
-}
-
-function ajusteAviso(){
-  var op=[[0,"a la hora"],[5,"5 min antes"],[10,"10 min antes"],[30,"30 min antes"],
-          [60,"1 hora antes"],[1440,"1 día antes"]];
-  return '<div class="ajuste">Avisar <select data-a="antes">'+
-    op.map(function(o){
-      return '<option value="'+o[0]+'"'+(state.avisoAntes===o[0]?" selected":"")+'>'+o[1]+'</option>';
-    }).join("")+'</select></div>'+
-    '<p class="hint">La campana no avisa por sí sola: crea el evento con su alarma y lo abre '+
-    'en el calendario del móvil, que es quien te avisa aunque la app esté cerrada.</p>';
 }
 
 function vSemana(){
@@ -649,8 +620,8 @@ function subTareas(){
 }
 function subAgenda(){
   var hoy=isoDe(new Date());
-  var n=state.eventos.filter(function(e){ return (e.f||"")>=hoy; }).length;
-  return n===0?"Sin eventos":(n===1?"1 evento por delante":n+" eventos por delante");
+  var n=agendaItems().filter(function(o){ return o.f>=hoy; }).length;
+  return n===0?"Nada por delante":(n===1?"1 cosa por delante":n+" cosas por delante");
 }
 function render(){
   var d=state.days[todayIdx], i, b=document.querySelectorAll(".tabs button");
@@ -704,21 +675,11 @@ document.addEventListener("click",function(ev){
   if(a==="abrir-cuando"){
     var td=state.todos[i];
     td.o = td.o ? 0 : 1;
-    if(!td.o && !td.f){ delete td.h; }
+    if(td.o && !td.f){ td.f=isoDe(new Date()); td.h=td.h||"09:00"; }
     render(); save(); return;
   }
-  if(a==="cerrar-cuando"){
-    var t2=state.todos[i]; delete t2.f; delete t2.h; t2.o=0;
-    render(); save(); return;
-  }
-  if(a==="ics-todo"){
-    var t3=state.todos[i]; crearAviso(t3.t,t3.f,t3.h||"09:00"); return;
-  }
-  if(a==="ics-hoy"){
-    var r=state.today[i]; crearAviso(r.t,isoDe(new Date()),r.h); return;
-  }
-  if(a==="ics-evento"){
-    var e=state.eventos[i]; crearAviso(e.t,e.f,e.h); return;
+  if(a==="quitar-fecha"){
+    var q=state.todos[i]; delete q.f; delete q.h; q.o=0; render(); save(); return;
   }
   if(a==="add-evento"){ addEvento(); return; }
   if(a==="clear-eventos"){
@@ -769,9 +730,6 @@ document.addEventListener("keydown",function(ev){
 });
 document.addEventListener("change",function(ev){
   var el=ev.target;
-  if(el.getAttribute && el.getAttribute("data-a")==="antes"){
-    state.avisoAntes=parseInt(el.value,10)||0; save(); return;
-  }
   var p=el.getAttribute && el.getAttribute("data-p");
   if(!p) return;
   put(p, el.type==="time" ? normHour(el.value) : el.value);
@@ -791,11 +749,13 @@ document.addEventListener("focusout",function(ev){
   var el=ev.target;
   if(!el.classList||!el.classList.contains("ed")) return;
   var p=el.getAttribute("data-p"), v=el.textContent.replace(/\s+/g," ").trim();
-  var esHora=/^today\.\d+\.h$/.test(p);
+  var esHoy=/^today\.\d+\.h$/.test(p);
+  var esHora=esHoy || /^(todos|eventos)\.\d+\.h$/.test(p);
   if(v===get(p) && !esHora) return;
   put(p, esHora ? normHour(v) : v);
   save();
-  if(esHora){ sortToday(); render(); }
+  if(esHoy) sortToday();
+  if(esHora) render();
 });
 document.addEventListener("paste",function(ev){
   if(!ev.target.classList||!ev.target.classList.contains("ed")) return;
@@ -833,7 +793,6 @@ function migrate(s){
   ["today","prep","clean","batch","ideas","todos","eventos"].forEach(function(k){
     if(!s[k]) s[k]=clone(DEFAULTS[k]);
   });
-  if(typeof s.avisoAntes!=="number") s.avisoAntes=10;
   return s;
 }
 try{
