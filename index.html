@@ -281,10 +281,11 @@ var DEFAULTS = {
   todos:[{t:"Renovar el seguro de la bici",done:false},
          {t:"Pedir cita con el fisio",done:false,f:enDias(1),h:"09:30"},
          {t:"Devolver el libro a Marta",done:true}],
-  eventos:[{t:"Revisión de la bici",f:enDias(3),h:"18:00"},
+  eventos:[{t:"Llamar al taller",f:enDias(0),h:"18:30"},
+           {t:"Revisión de la bici",f:enDias(3),h:"18:00"},
            {t:"Cumple de Marta",f:enDias(9),h:"21:00"}],
-  today:[{h:"13:00",t:"Compra"},{h:"14:00",t:"Cocinar y comer"},{h:"20:00",t:"Cenar"},{h:"23:00",t:"Dormir"}],
-  prep:[{t:"Sacar del congelador lo de mañana",done:false},{t:"Mirar la nevera antes de comprar",done:false}],
+  today:[{h:"07:30",t:"Desayunar"},{h:"14:30",t:"Comer"},
+         {h:"20:00",t:"Cenar"},{h:"22:30",t:"Acostarse"}],
   lists:[
     {k:"A",n:"Compra A",day:"Martes",items:[
       {t:"Salmón"},{t:"Pollo"},{t:"Brécol"},{t:"Cebolla"},{t:"Fajitas"},{t:"Tomate"},
@@ -328,6 +329,8 @@ var DEFAULTS = {
   ]
 };
 
+var BASE_DIA=[{h:"07:30",t:"Desayunar"},{h:"14:30",t:"Comer"},
+               {h:"20:00",t:"Cenar"},{h:"22:30",t:"Acostarse"}];
 var LS_KEY="semanaBase.v1";
 var IS_ARTIFACT=!!(window.claude && typeof window.claude.use==="function");
 var state=JSON.parse(JSON.stringify(DEFAULTS));
@@ -395,7 +398,10 @@ function revisarAvisos(){
   if(!puedeAvisar()) return;
   var now=new Date(), hoy=isoDe(now), m=now.getHours()*60+now.getMinutes();
   var vistos=notiVistos();
-  state.today.forEach(function(r){
+  var filas = diaHorario()===hoy
+    ? filasHorario()
+    : agendaItems().filter(function(o){ return o.f===hoy; });
+  filas.forEach(function(r){
     if(!r.t) return;
     var t=mins(r.h);
     if(m>=t && m<t+3){
@@ -523,26 +529,50 @@ function vHoy(){
   }
   h+='</div><button class="btn" data-a="add-act">+ Añadir actividad</button></div>';
 
+  var mañana = diaHorario()!==isoDe(new Date());
+  var filas = filasHorario();
+  h+='<h2>Horario'+(mañana?' · mañana':'')+'</h2><div class="card"><ul>';
+  filas.forEach(function(r){
+    if(r.tipo==="base"){
+      h+='<li class="row"><span class="hour">'+ed("today."+r.i+".h",r.h)+'</span>'+
+         '<span class="txt">'+ed("today."+r.i+".t",r.t)+'</span>'+del("today",r.i)+'</li>';
+    }else if(r.tipo==="ev"){
+      h+='<li class="row"><span class="hour">'+ed("eventos."+r.i+".h",r.h)+'</span>'+
+         '<i class="pip pip-ev"></i>'+
+         '<span class="txt">'+ed("eventos."+r.i+".t",r.t)+'</span></li>';
+    }else{
+      var t=state.todos[r.i];
+      h+='<li class="row esTarea'+(t.done?" done":"")+'">'+
+         '<span class="hour">'+ed("todos."+r.i+".h",r.h)+'</span>'+
+         chk("todos."+r.i+".done",t.done)+
+         '<span class="txt">'+ed("todos."+r.i+".t",r.t)+'</span></li>';
+    }
+  });
+  h+='</ul><button class="btn" data-a="add-today">+ Añadir hora</button>'+
+     '<button class="mini" data-a="fin-dia">Fin del día</button>';
+  if(filas.some(function(r){ return r.tipo!=="base"; })){
+    h+='<p class="hint">Lo que lleva punto o casilla viene de la Agenda. Se quita desde allí.</p>';
+  }
+  h+='</div>';
+
   h+='<h2>Menú</h2><div class="card">'+
      mealRow("Desayuno","days."+todayIdx+".meals.d",d.meals.d)+
      mealRow("Comida","days."+todayIdx+".meals.c",d.meals.c)+
      mealRow("Cena","days."+todayIdx+".meals.e",d.meals.e)+'</div>';
-
-  h+='<h2>Horario</h2><div class="card"><ul>';
-  state.today.forEach(function(r,i){
-    h+='<li class="row"><span class="hour">'+ed("today."+i+".h",r.h)+'</span>'+
-       '<span class="txt">'+ed("today."+i+".t",r.t)+'</span>'+
-       del("today",i)+'</li>';
-  });
-  h+='</ul><button class="btn" data-a="add-today">+ Añadir hora</button></div>';
-
-  h+='<h2>Antes de dormir</h2><div class="card"><ul>';
-  state.prep.forEach(function(p,i){
-    h+='<li class="row'+(p.done?" done":"")+'">'+chk("prep."+i+".done",p.done)+
-       '<span class="txt">'+ed("prep."+i+".t",p.t)+'</span>'+del("prep",i)+'</li>';
-  });
-  h+='</ul></div>';
   return h;
+}
+
+/* El horario pasa a ser el de mañana en cuanto cierras el día. */
+function diaHorario(){
+  return state.finDia===isoDe(new Date()) ? enDias(1) : isoDe(new Date());
+}
+/* Junta las horas fijas del día con lo que haya en la agenda para ese día. */
+function filasHorario(){
+  var dia=diaHorario(), out=[];
+  state.today.forEach(function(r,i){ out.push({tipo:"base", i:i, h:normHour(r.h), t:r.t}); });
+  agendaItems().forEach(function(o){ if(o.f===dia) out.push(o); });
+  out.sort(function(a,b){ return mins(a.h)-mins(b.h); });
+  return out;
 }
 
 function vTareas(){
@@ -843,6 +873,13 @@ document.addEventListener("click",function(ev){
     render(); save(); return;
   }
 
+  if(a==="fin-dia"){
+    if(!window.confirm("¿Cerrar el día?\n\nSe borra el horario actual y se deja la base de mañana: "+
+       "desayunar 07:30, comer 14:30, cenar 20:00 y acostarse 22:30."))return;
+    state.today=clone(BASE_DIA);
+    state.finDia=isoDe(new Date());
+    render(); save(); return;
+  }
   if(a==="permiso"){ pedirPermiso(); return; }
   if(a==="probar"){ lanzar("Semana Base","Los avisos funcionan. Esto es una prueba."); return; }
   if(a==="prog-horario"){ programarHorario(); return; }
@@ -949,7 +986,7 @@ document.getElementById("importer").addEventListener("change",function(ev){
 /* ---------------- arranque ---------------- */
 function migrate(s){
   if(!s||!s.days||!s.lists) return null;
-  ["today","prep","clean","batch","ideas","todos","eventos"].forEach(function(k){
+  ["today","clean","batch","ideas","todos","eventos"].forEach(function(k){
     if(!s[k]) s[k]=clone(DEFAULTS[k]);
   });
   return s;
