@@ -209,6 +209,18 @@ ul{list-style:none; margin:0; padding:0}
 .dia{font-size:12.5px; font-weight:700; color:var(--accent); padding:14px 0 2px;
      border-top:1px solid var(--line); margin-top:6px}
 .dia:first-child{border-top:0; margin-top:0; padding-top:0}
+.manana{background:var(--accent-soft); border-radius:13px; padding:12px 14px; margin-bottom:10px}
+.manana b{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+          color:var(--accent); display:block; margin-bottom:6px}
+.manana ul{display:flex; flex-direction:column; gap:4px}
+.manana li{font-size:14.5px; display:flex; gap:10px}
+.manana li span{font-variant-numeric:tabular-nums; color:var(--ink-2); width:46px; flex:none}
+.manana p{margin:0; font-size:14.5px; color:var(--ink-2)}
+.estado{font-size:13.5px; margin:0 0 4px; font-weight:600}
+.est-granted{color:var(--accent)}
+.est-default{color:var(--ink-2)}
+.est-denied{color:#B4434B}
+.divisor{height:1px; background:var(--line); margin:14px 0 12px}
 .pip{width:9px; height:9px; border-radius:50%; flex:none; display:block}
 .pip-ev{background:var(--c-agenda)}
 .pip-td{background:transparent; border:2px solid var(--c-tareas); border-radius:3px;
@@ -267,7 +279,7 @@ var DEFAULTS = {
      meals:{d:"Yogur completo",c:"¡NUEVO! — plato de la semana",e:"Arroz + cebolla + champis + contramuslos"}}
   ],
   todos:[{t:"Renovar el seguro de la bici",done:false},
-         {t:"Pedir cita con el fisio",done:false,f:enDias(2),h:"09:30",o:1},
+         {t:"Pedir cita con el fisio",done:false,f:enDias(1),h:"09:30"},
          {t:"Devolver el libro a Marta",done:true}],
   eventos:[{t:"Revisión de la bici",f:enDias(3),h:"18:00"},
            {t:"Cumple de Marta",f:enDias(9),h:"21:00"}],
@@ -344,6 +356,120 @@ function normHour(s){
   return pad2(Math.floor(v/60))+":"+pad2(v%60);
 }
 function sortToday(){ state.today.sort(function(a,b){ return mins(a.h)-mins(b.h); }); }
+
+/* ===================== AVISOS =====================
+   Dos mecanismos distintos, porque una web no puede despertarse sola:
+   1) Alarmas en el calendario del móvil  -> funcionan con la app cerrada.
+   2) Avisos del sistema desde la propia app -> solo con la app abierta. */
+
+var HORA_RESUMEN="21:00";
+var NOTI_KEY="semanaBase.noti";
+
+function notiVistos(){
+  try{ return JSON.parse(localStorage.getItem(NOTI_KEY)||"{}"); }catch(e){ return {}; }
+}
+function marcaVisto(k){
+  var hoy=isoDe(new Date()), v=notiVistos(), limpio={};
+  Object.keys(v).forEach(function(x){ if(x.indexOf(hoy)===0) limpio[x]=1; });
+  limpio[k]=1;
+  try{ localStorage.setItem(NOTI_KEY, JSON.stringify(limpio)); }catch(e){}
+}
+function puedeAvisar(){ return ("Notification" in window) && Notification.permission==="granted"; }
+function lanzar(titulo,cuerpo){
+  var opts={body:cuerpo, icon:"icon.png", badge:"icon.png", tag:titulo, renotify:false};
+  if(navigator.serviceWorker && navigator.serviceWorker.ready){
+    navigator.serviceWorker.ready.then(function(reg){
+      return reg.showNotification(titulo,opts);
+    }).catch(function(){ try{ new Notification(titulo,opts); }catch(e){} });
+  }else{
+    try{ new Notification(titulo,opts); }catch(e){}
+  }
+}
+function resumenManana(){
+  var man=enDias(1);
+  var lista=agendaItems().filter(function(o){ return o.f===man; });
+  if(!lista.length) return "Mañana no tienes nada anotado.";
+  return lista.map(function(o){ return o.h+"  "+o.t; }).join("\n");
+}
+function revisarAvisos(){
+  if(!puedeAvisar()) return;
+  var now=new Date(), hoy=isoDe(now), m=now.getHours()*60+now.getMinutes();
+  var vistos=notiVistos();
+  state.today.forEach(function(r){
+    if(!r.t) return;
+    var t=mins(r.h);
+    if(m>=t && m<t+3){
+      var k=hoy+"|h|"+normHour(r.h)+"|"+r.t;
+      if(!vistos[k]){ lanzar(r.t, "Toca ahora · "+normHour(r.h)); marcaVisto(k); }
+    }
+  });
+  var t21=mins(HORA_RESUMEN);
+  if(m>=t21 && m<t21+3){
+    var k2=hoy+"|resumen";
+    if(!vistos[k2]){ lanzar("Mañana", resumenManana()); marcaVisto(k2); }
+  }
+}
+function pedirPermiso(){
+  if(!("Notification" in window)){ window.alert("Este navegador no tiene avisos."); return; }
+  Notification.requestPermission().then(function(){ render(); });
+}
+
+/* --- alarmas recurrentes para el calendario del móvil --- */
+function escICS(s){ return String(s).replace(/([,;\\])/g,"\\$1").replace(/\r?\n/g,"\\n"); }
+function sello(d){
+  return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+"T"+
+         pad2(d.getHours())+pad2(d.getMinutes())+"00";
+}
+function bloqueEvento(titulo,cuando,minutos){
+  var fin=new Date(cuando.getTime()+(minutos||15)*60000);
+  var uid=Date.now()+"-"+Math.random().toString(36).slice(2)+"@semanabase";
+  var L=["BEGIN:VEVENT","UID:"+uid,"DTSTAMP:"+sello(new Date()),
+         "DTSTART:"+sello(cuando),"DTEND:"+sello(fin),
+         "RRULE:FREQ=DAILY","SUMMARY:"+escICS(titulo)];
+  if(/^https?:/.test(location.href)) L.push("URL:"+location.href.split("#")[0]);
+  L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+escICS(titulo),
+         "TRIGGER:PT0M","END:VALARM","END:VEVENT");
+  return L;
+}
+function hoyALas(hhmm){
+  var m=mins(hhmm), ahora=new Date();
+  var d=new Date(ahora.getFullYear(),ahora.getMonth(),ahora.getDate(),Math.floor(m/60),m%60,0);
+  if(d.getTime()<Date.now()) d.setDate(d.getDate()+1);
+  return d;
+}
+function bajarICS(lineas,nombre){
+  var txt=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Semana Base//ES","CALSCALE:GREGORIAN"]
+          .concat(lineas).concat(["END:VCALENDAR"]).join("\r\n");
+  var blob=new Blob([txt],{type:"text/calendar;charset=utf-8"});
+  try{
+    if(window.File && navigator.canShare){
+      var file=new File([blob],nombre,{type:"text/calendar"});
+      if(navigator.canShare({files:[file]})){
+        navigator.share({files:[file]}).catch(function(){});
+        return;
+      }
+    }
+  }catch(e){}
+  try{
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url; a.download=nombre;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },800);
+  }catch(e){ window.alert("Este navegador no deja crear el archivo."); }
+}
+function programarHorario(){
+  var L=[];
+  state.today.forEach(function(r){
+    if(r.t) L=L.concat(bloqueEvento(r.t, hoyALas(r.h), 15));
+  });
+  if(!L.length){ window.alert("No hay nada en el horario."); return; }
+  bajarICS(L,"horario-diario.ics");
+}
+function programarResumen(){
+  bajarICS(bloqueEvento("Repasar la agenda de mañana", hoyALas(HORA_RESUMEN), 10),
+           "repaso-noche.ics");
+}
 
 function fechaLarga(iso){
   var p=String(iso||"").split("-");
@@ -493,6 +619,13 @@ function vAgenda(){
         '<input id="nuevo-hora" type="time" value="19:00">'+
         '</div><button class="ancho" data-a="add-evento">Añadir evento</button>';
 
+  var man=todo.filter(function(o){ return o.f===enDias(1); });
+  h+='<div class="manana"><b>Mañana</b>'+
+     (man.length
+       ? '<ul>'+man.map(function(o){
+           return '<li><span>'+esc(o.h)+'</span>'+esc(o.t)+'</li>'; }).join("")+'</ul>'
+       : '<p>Nada anotado.</p>')+'</div>';
+
   h+='<div class="card">';
   if(!futuros.length && !pasados.length){
     h+='<div class="vacio">Nada en la agenda todavía.</div>';
@@ -600,6 +733,28 @@ function vCasa(){
   });
   h+='<button class="btn" data-a="add" data-p="batch">+ Añadir</button></div>';
 
+  h+='<h2>Avisos</h2><div class="card">';
+  var perm = ("Notification" in window) ? Notification.permission : "no";
+  if(perm==="no"){
+    h+='<p class="hint" style="margin-top:0">Este navegador no admite avisos del sistema.</p>';
+  }else{
+    h+='<p class="estado est-'+perm+'">'+
+       (perm==="granted" ? "Avisos activados en este móvil"
+        : perm==="denied" ? "Avisos bloqueados — actívalos en los ajustes del navegador"
+        : "Avisos sin activar")+'</p>';
+    if(perm!=="granted") h+='<button class="mini" data-a="permiso">Activar avisos</button>';
+    else h+='<button class="mini" data-a="probar">Probar un aviso</button>';
+    h+='<p class="hint">Con esto te avisa cada cosa del horario a su hora, y a las '+HORA_RESUMEN+
+       ' te llega lo que tienes mañana. <b>Solo mientras la app esté abierta</b>, aunque sea en '+
+       'segundo plano: una web no puede despertarse sola.</p>';
+  }
+  h+='<div class="divisor"></div>'+
+     '<p class="hint" style="margin-top:0"><b>Para que suene con la app cerrada</b>, pásalo al '+
+     'calendario del móvil. Se crean alarmas que se repiten todos los días, y avisa el teléfono.</p>'+
+     '<button class="mini" data-a="prog-horario">Horario diario al calendario</button>'+
+     '<button class="mini" data-a="prog-resumen">Repaso de las '+HORA_RESUMEN+'</button>'+
+     '</div>';
+
   h+='<h2>Datos</h2><div class="card">';
   if(!IS_ARTIFACT){
     h+='<button class="mini" data-a="export">Exportar</button>'+
@@ -688,6 +843,10 @@ document.addEventListener("click",function(ev){
     render(); save(); return;
   }
 
+  if(a==="permiso"){ pedirPermiso(); return; }
+  if(a==="probar"){ lanzar("Semana Base","Los avisos funcionan. Esto es una prueba."); return; }
+  if(a==="prog-horario"){ programarHorario(); return; }
+  if(a==="prog-resumen"){ programarResumen(); return; }
   if(a==="export"){ doExport(); return; }
   if(a==="import"){ document.getElementById("importer").click(); return; }
   if(a==="reset"){
@@ -801,6 +960,15 @@ try{
 }catch(e){}
 render();
 status("","");
+
+if(navigator.serviceWorker && /^https?:/.test(location.protocol)){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
+revisarAvisos();
+setInterval(revisarAvisos, 30000);
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden){ revisarAvisos(); render(); }
+});
 
 if(IS_ARTIFACT){
   window.claude.use("db").then(function(db){
