@@ -19,6 +19,7 @@
   --line:#C9E0EF;
   --sport:#0F7BA8; --cook:#A8660F; --shop:#4A50A0; --clean:#8A4A86; --rest:#5E7280;
   --accent:#0F7BA8; --accent-soft:#CFE9F8; --on-accent:#FFFFFF; --sky:#4FB4DF;
+  --neg:#C63A54;
   --c-hoy:#0F7BA8; --c-tareas:#0E7A62; --c-agenda:#4A50A0; --c-semana:#8A4A86;
   --c-recetas:#A0641A; --c-compra:#6A7A12; --c-casa:#A34A52; --c-finanzas:#0E6E6E;
   --e0:#3B6FD4; --e1:#1E8A5F; --e2:#A87C00; --e3:#C63A54; --e4:#8248C8;
@@ -49,18 +50,19 @@ body[data-view="finanzas"]{--accent:#0E6E6E; --accent-soft:#D3EBEA; --sky:#2E9B9
     --line:#243542;
     --sport:#6FCFF2; --cook:#E3A94A; --shop:#93A6EE; --clean:#CE94CB; --rest:#8DA3AE;
     --accent:#6FCFF2; --accent-soft:#13323F; --on-accent:#071C24; --sky:#6FCFF2;
+    --neg:#F0808E;
     --c-hoy:#6FCFF2; --c-tareas:#56D3B2; --c-agenda:#A2AAF7; --c-semana:#DCA0D8;
     --c-recetas:#E7AE54; --c-compra:#C3D45E; --c-casa:#F2969E; --c-finanzas:#58CBC4;
     --e0:#5A8AE0; --e1:#2F9E6E; --e2:#B8891F; --e3:#D45A66; --e4:#9566D4;
   }
-  :root:not([data-theme="light"]) body[data-view="hoy"]     {--accent:#6FCFF2; --accent-soft:#13323F; --sky:#6FCFF2; --paper:#08151D; --card:#112330; --soft:#172C3A; --line:#21384A}
-  :root:not([data-theme="light"]) body[data-view="tareas"]  {--accent:#56D3B2; --accent-soft:#10332C; --sky:#56D3B2; --paper:#06170F; --card:#0F2419; --soft:#152E22; --line:#1E3B2C}
-  :root:not([data-theme="light"]) body[data-view="agenda"]  {--accent:#A2AAF7; --accent-soft:#1E2140; --sky:#A2AAF7; --paper:#0C0E1E; --card:#171B33; --soft:#1D2240; --line:#282D52}
-  :root:not([data-theme="light"]) body[data-view="semana"]  {--accent:#DCA0D8; --accent-soft:#341C33; --sky:#DCA0D8; --paper:#18091A; --card:#26132A; --soft:#2E1932; --line:#3C223F}
-  :root:not([data-theme="light"]) body[data-view="recetas"] {--accent:#E7AE54; --accent-soft:#35270F; --sky:#E7AE54; --paper:#191105; --card:#281D0C; --soft:#312511; --line:#41311A}
-  :root:not([data-theme="light"]) body[data-view="compra"]  {--accent:#C3D45E; --accent-soft:#2A2F12; --sky:#C3D45E; --paper:#111505; --card:#1D230C; --soft:#242B11; --line:#32391A}
-  :root:not([data-theme="light"]) body[data-view="casa"]    {--accent:#F2969E; --accent-soft:#3A1D20; --sky:#F2969E; --paper:#1A080A; --card:#2A1215; --soft:#33181B; --line:#432125}
-  :root:not([data-theme="light"]) body[data-view="finanzas"]{--accent:#58CBC4; --accent-soft:#0F3231; --sky:#58CBC4; --paper:#041817; --card:#0D2524; --soft:#132E2C; --line:#1C3C3A}
+  :root:not([data-theme="light"]) body[data-view="hoy"]{--accent:#6FCFF2; --accent-soft:#13323F; --sky:#6FCFF2; --paper:#08151D; --card:#112330; --soft:#172C3A; --line:#21384A; --ink:#E3F0F8; --ink-2:#9FB8C8; --ink-3:#7A93A4}
+  :root:not([data-theme="light"]) body[data-view="tareas"]{--accent:#56D3B2; --accent-soft:#10332C; --sky:#56D3B2; --paper:#06170F; --card:#0F2419; --soft:#152E22; --line:#1E3B2C; --ink:#E0F2EA; --ink-2:#9CBFB0; --ink-3:#7A9C8C}
+  :root:not([data-theme="light"]) body[data-view="agenda"]{--accent:#A2AAF7; --accent-soft:#1E2140; --sky:#A2AAF7; --paper:#0C0E1E; --card:#171B33; --soft:#1D2240; --line:#282D52; --ink:#E7E8FA; --ink-2:#AEB2D8; --ink-3:#8A8FB8}
+  :root:not([data-theme="light"]) body[data-view="semana"]{--accent:#DCA0D8; --accent-soft:#341C33; --sky:#DCA0D8; --paper:#18091A; --card:#26132A; --soft:#2E1932; --line:#3C223F; --ink:#F6E6F4; --ink-2:#C9A8C6; --ink-3:#A886A4}
+  :root:not([data-theme="light"]) body[data-view="recetas"]{--accent:#E7AE54; --accent-soft:#35270F; --sky:#E7AE54; --paper:#191105; --card:#281D0C; --soft:#312511; --line:#41311A; --ink:#F8EDDC; --ink-2:#C9B294; --ink-3:#A79172}
+  :root:not([data-theme="light"]) body[data-view="compra"]{--accent:#C3D45E; --accent-soft:#2A2F12; --sky:#C3D45E; --paper:#111505; --card:#1D230C; --soft:#242B11; --line:#32391A; --ink:#EFF4DC; --ink-2:#BCC79A; --ink-3:#9AA678}
+  :root:not([data-theme="light"]) body[data-view="casa"]{--accent:#F2969E; --accent-soft:#3A1D20; --sky:#F2969E; --paper:#1A080A; --card:#2A1215; --soft:#33181B; --line:#432125; --ink:#FAE6E8; --ink-2:#CBA5A9; --ink-3:#A98388}
+  :root:not([data-theme="light"]) body[data-view="finanzas"]{--accent:#58CBC4; --accent-soft:#0F3231; --sky:#58CBC4; --paper:#041817; --card:#0D2524; --soft:#132E2C; --line:#1C3C3A; --ink:#DFF1EF; --ink-2:#9BBDBA; --ink-3:#799B98}
 }
 :root[data-theme="dark"]{
   --paper:#0B1620; --card:#14212B; --soft:#1A2935;
@@ -68,18 +70,19 @@ body[data-view="finanzas"]{--accent:#0E6E6E; --accent-soft:#D3EBEA; --sky:#2E9B9
   --line:#243542;
   --sport:#6FCFF2; --cook:#E3A94A; --shop:#93A6EE; --clean:#CE94CB; --rest:#8DA3AE;
   --accent:#6FCFF2; --accent-soft:#13323F; --on-accent:#071C24; --sky:#6FCFF2;
+  --neg:#F0808E;
   --c-hoy:#6FCFF2; --c-tareas:#56D3B2; --c-agenda:#A2AAF7; --c-semana:#DCA0D8;
   --c-recetas:#E7AE54; --c-compra:#C3D45E; --c-casa:#F2969E; --c-finanzas:#58CBC4;
   --e0:#5A8AE0; --e1:#2F9E6E; --e2:#B8891F; --e3:#D45A66; --e4:#9566D4;
 }
-:root[data-theme="dark"] body[data-view="hoy"]     {--accent:#6FCFF2; --accent-soft:#13323F; --sky:#6FCFF2; --paper:#08151D; --card:#112330; --soft:#172C3A; --line:#21384A}
-:root[data-theme="dark"] body[data-view="tareas"]  {--accent:#56D3B2; --accent-soft:#10332C; --sky:#56D3B2; --paper:#06170F; --card:#0F2419; --soft:#152E22; --line:#1E3B2C}
-:root[data-theme="dark"] body[data-view="agenda"]  {--accent:#A2AAF7; --accent-soft:#1E2140; --sky:#A2AAF7; --paper:#0C0E1E; --card:#171B33; --soft:#1D2240; --line:#282D52}
-:root[data-theme="dark"] body[data-view="semana"]  {--accent:#DCA0D8; --accent-soft:#341C33; --sky:#DCA0D8; --paper:#18091A; --card:#26132A; --soft:#2E1932; --line:#3C223F}
-:root[data-theme="dark"] body[data-view="recetas"] {--accent:#E7AE54; --accent-soft:#35270F; --sky:#E7AE54; --paper:#191105; --card:#281D0C; --soft:#312511; --line:#41311A}
-:root[data-theme="dark"] body[data-view="compra"]  {--accent:#C3D45E; --accent-soft:#2A2F12; --sky:#C3D45E; --paper:#111505; --card:#1D230C; --soft:#242B11; --line:#32391A}
-:root[data-theme="dark"] body[data-view="casa"]    {--accent:#F2969E; --accent-soft:#3A1D20; --sky:#F2969E; --paper:#1A080A; --card:#2A1215; --soft:#33181B; --line:#432125}
-:root[data-theme="dark"] body[data-view="finanzas"]{--accent:#58CBC4; --accent-soft:#0F3231; --sky:#58CBC4; --paper:#041817; --card:#0D2524; --soft:#132E2C; --line:#1C3C3A}
+:root[data-theme="dark"] body[data-view="hoy"]{--accent:#6FCFF2; --accent-soft:#13323F; --sky:#6FCFF2; --paper:#08151D; --card:#112330; --soft:#172C3A; --line:#21384A; --ink:#E3F0F8; --ink-2:#9FB8C8; --ink-3:#7A93A4}
+:root[data-theme="dark"] body[data-view="tareas"]{--accent:#56D3B2; --accent-soft:#10332C; --sky:#56D3B2; --paper:#06170F; --card:#0F2419; --soft:#152E22; --line:#1E3B2C; --ink:#E0F2EA; --ink-2:#9CBFB0; --ink-3:#7A9C8C}
+:root[data-theme="dark"] body[data-view="agenda"]{--accent:#A2AAF7; --accent-soft:#1E2140; --sky:#A2AAF7; --paper:#0C0E1E; --card:#171B33; --soft:#1D2240; --line:#282D52; --ink:#E7E8FA; --ink-2:#AEB2D8; --ink-3:#8A8FB8}
+:root[data-theme="dark"] body[data-view="semana"]{--accent:#DCA0D8; --accent-soft:#341C33; --sky:#DCA0D8; --paper:#18091A; --card:#26132A; --soft:#2E1932; --line:#3C223F; --ink:#F6E6F4; --ink-2:#C9A8C6; --ink-3:#A886A4}
+:root[data-theme="dark"] body[data-view="recetas"]{--accent:#E7AE54; --accent-soft:#35270F; --sky:#E7AE54; --paper:#191105; --card:#281D0C; --soft:#312511; --line:#41311A; --ink:#F8EDDC; --ink-2:#C9B294; --ink-3:#A79172}
+:root[data-theme="dark"] body[data-view="compra"]{--accent:#C3D45E; --accent-soft:#2A2F12; --sky:#C3D45E; --paper:#111505; --card:#1D230C; --soft:#242B11; --line:#32391A; --ink:#EFF4DC; --ink-2:#BCC79A; --ink-3:#9AA678}
+:root[data-theme="dark"] body[data-view="casa"]{--accent:#F2969E; --accent-soft:#3A1D20; --sky:#F2969E; --paper:#1A080A; --card:#2A1215; --soft:#33181B; --line:#432125; --ink:#FAE6E8; --ink-2:#CBA5A9; --ink-3:#A98388}
+:root[data-theme="dark"] body[data-view="finanzas"]{--accent:#58CBC4; --accent-soft:#0F3231; --sky:#58CBC4; --paper:#041817; --card:#0D2524; --soft:#132E2C; --line:#1C3C3A; --ink:#DFF1EF; --ink-2:#9BBDBA; --ink-3:#799B98}
 
 *{box-sizing:border-box}
 body{
@@ -239,7 +242,7 @@ ul{list-style:none; margin:0; padding:0}
 .estado{font-size:13.5px; margin:0 0 4px; font-weight:600}
 .est-granted{color:var(--accent)}
 .est-default{color:var(--ink-2)}
-.est-denied{color:#B4434B}
+.est-denied{color:var(--neg)}
 .divisor{height:1px; background:var(--line); margin:14px 0 12px}
 
 /* --- selector de modo --- */
@@ -284,7 +287,7 @@ ul{list-style:none; margin:0; padding:0}
           color:var(--ink-3)}
 .hero .big{font-size:34px; font-weight:700; letter-spacing:-.02em; line-height:1.1;
            margin-top:4px; font-variant-numeric:tabular-nums}
-.hero .big.neg{color:#C63A54}
+.hero .big.neg{color:var(--neg)}
 .hero .big.pos{color:var(--accent)}
 .duo{display:flex; gap:22px; margin-top:12px; padding-top:12px; border-top:1px solid var(--line)}
 .duo div{flex:1}
@@ -297,7 +300,7 @@ ul{list-style:none; margin:0; padding:0}
 .pista{height:8px; background:var(--soft); border-radius:4px; overflow:hidden}
 .relleno{height:100%; background:var(--accent); border-radius:4px; min-width:4px}
 .medidor .pista{height:12px; border-radius:6px}
-.medidor .relleno.pasado{background:#C63A54}
+.medidor .relleno.pasado{background:var(--neg)}
 .fil3{display:flex; gap:8px; margin-bottom:8px}
 .fil3 input, .fil3 select{min-width:0; border:1px solid var(--line); background:var(--card);
     color:var(--ink); border-radius:11px; padding:11px 12px; font-size:15px;
@@ -317,6 +320,7 @@ ul{list-style:none; margin:0; padding:0}
 .fijo .ft{flex:1; min-width:0; line-height:1.3}
 .fijo .fc{font-size:11.5px; color:var(--ink-3)}
 .fijo .fv{font-variant-numeric:tabular-nums; font-weight:600; flex:none}
+.fijo .fv.ing{color:var(--accent)}
 .mov{display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--line)}
 .mov:first-child{border-top:0}
 .mov .mc{font-size:11px; color:var(--ink-3); flex:none; width:64px}
@@ -391,7 +395,8 @@ var DEFAULTS = {
            {t:"Revisión de la bici",f:enDias(3),h:"18:00",col:0},
            {t:"Cumple de Marta",f:enDias(9),h:"21:00",col:4}],
   fin:{presupuesto:0,
-    fijos:[{t:"Alquiler",v:650,c:"Casa",on:true},
+    fijos:[{t:"Nómina",v:1650,i:true,on:true},
+           {t:"Alquiler",v:650,c:"Casa",on:true},
            {t:"Wifi",v:39.9,c:"Casa",on:true},
            {t:"Luz",v:55,c:"Casa",on:true},
            {t:"Agua",v:22,c:"Casa",on:true},
@@ -399,7 +404,7 @@ var DEFAULTS = {
            {t:"Rocódromo",v:45,c:"Deporte",on:true}],
     movs:[
     {f:enDias(-2),t:"Compra semanal",c:"Comida",v:62.4,i:false},
-    {f:enDias(0), t:"Nómina",c:"Ingreso",v:1650,i:true}
+    {f:enDias(0), t:"Suplemento de guardia",c:"Ingreso",v:120,i:true}
   ]},
   today:[{h:"07:30",t:"Desayunar"},{h:"14:30",t:"Comer"},
          {h:"20:00",t:"Cenar"},{h:"22:30",t:"Acostarse"}],
@@ -453,7 +458,7 @@ var IS_ARTIFACT=!!(window.claude && typeof window.claude.use==="function");
 var state=JSON.parse(JSON.stringify(DEFAULTS));
 var view="hoy", shopTab=0;
 var agendaModo="lista", calMes=null, calSel=null, swatchFor=null;
-var finMes=null, finTipo="gasto";
+var finMes=null, finTipo="gasto", fijoTipo="gasto";
 var COLORES=["var(--e0)","var(--e1)","var(--e2)","var(--e3)","var(--e4)"];
 var CATS=["Comida","Casa","Transporte","Ocio","Salud","Deporte","Otros"];
 var docRef=null, timer=null, saving=false, dirty=false;
@@ -1039,13 +1044,15 @@ function vFinanzas(){
     if(o.m.i){ ing+=v; }
     else{ gas+=v; porCat[o.m.c||"Otros"]=(porCat[o.m.c||"Otros"]||0)+v; }
   });
-  var fijos=0;
+  var fijos=0, fijosIng=0;
   state.fin.fijos.forEach(function(x){
     if(x.on===false) return;
-    var v=num(x.v); fijos+=v;
+    var v=num(x.v);
+    if(x.i){ fijosIng+=v; return; }
+    fijos+=v;
     porCat[x.c||"Casa"]=(porCat[x.c||"Casa"]||0)+v;
   });
-  gas+=fijos;
+  gas+=fijos; ing+=fijosIng;
   var saldo=ing-gas;
 
   var h='<div class="calnav">'+
@@ -1099,7 +1106,8 @@ function vFinanzas(){
 
   /* gastos fijos del mes */
   var activos=state.fin.fijos.filter(function(x){ return x.on!==false; }).length;
-  h+='<h2>Gastos fijos · '+esc(eur(fijos))+'</h2><div class="card">';
+  h+='<h2>Cada mes · '+(fijosIng?'+'+esc(eur(fijosIng))+'  ':'')+
+     '−'+esc(eur(fijos))+'</h2><div class="card">';
   if(!state.fin.fijos.length){
     h+='<div class="vacio">Sin gastos fijos.</div>';
   }else{
@@ -1109,22 +1117,29 @@ function vFinanzas(){
          '<button class="box" data-a="toggle" data-p="fin.fijos.'+i+'.on" '+
          'aria-pressed="'+(!off)+'">&#10003;</button>'+
          '<span class="ft">'+ed("fin.fijos."+i+".t",x.t)+
-         '<br><span class="fc">'+esc(x.c||"Casa")+'</span></span>'+
-         '<span class="fv">'+ed("fin.fijos."+i+".v",eur(num(x.v)))+'</span>'+
+         '<br><span class="fc">'+esc(x.i?"Ingreso":(x.c||"Casa"))+'</span></span>'+
+         '<span class="fv'+(x.i?" ing":"")+'">'+(x.i?"+":"−")+
+         ed("fin.fijos."+i+".v",eur(num(x.v)))+'</span>'+
          del("fin.fijos",i)+'</div>';
     });
     h+='<p class="hint">'+activos+' de '+state.fin.fijos.length+
-       ' activos. Se suman solos a los gastos de cada mes, sin tener que apuntarlos. '+
+       ' activos. Se cuentan solos todos los meses, sin tener que apuntarlos. '+
        'Desmarca el que no toque este mes.</p>';
   }
-  h+='<div class="fil3" style="margin:10px 0 8px">'+
+  h+='<div class="tipo" style="margin-top:12px">'+
+     '<button data-a="fijotipo" data-t="gasto" aria-pressed="'+(fijoTipo==="gasto")+'">Gasto fijo</button>'+
+     '<button data-a="fijotipo" data-t="ingreso" aria-pressed="'+(fijoTipo==="ingreso")+'">Ingreso fijo</button>'+
+     '</div>'+
+     '<div class="fil3">'+
      '<input id="fijo-t" type="text" style="flex:1" placeholder="Concepto" '+
      'autocomplete="off" autocapitalize="sentences">'+
-     '<input id="fijo-v" class="imp" type="text" inputmode="decimal" placeholder="0,00"></div>'+
-     '<div class="fil3"><select id="fijo-c" style="flex:1">'+
-     CATS.map(function(c){ return '<option'+(c==="Casa"?" selected":"")+'>'+esc(c)+'</option>'; }).join("")+
-     '</select></div>'+
-     '<button class="ancho" style="margin:0" data-a="add-fijo">Añadir gasto fijo</button></div>';
+     '<input id="fijo-v" class="imp" type="text" inputmode="decimal" placeholder="0,00"></div>';
+  if(fijoTipo==="gasto"){
+    h+='<div class="fil3"><select id="fijo-c" style="flex:1">'+
+       CATS.map(function(c){ return '<option'+(c==="Casa"?" selected":"")+'>'+esc(c)+'</option>'; }).join("")+
+       '</select></div>';
+  }
+  h+='<button class="ancho" style="margin:0" data-a="add-fijo">Añadir</button></div>';
 
   /* alta de movimiento */
   h+='<h2>Apuntar</h2><div class="card">'+
@@ -1266,6 +1281,7 @@ document.addEventListener("click",function(ev){
     render(); return;
   }
   if(a==="ftipo"){ finTipo=b.getAttribute("data-t"); render(); return; }
+  if(a==="fijotipo"){ fijoTipo=b.getAttribute("data-t"); render(); return; }
   if(a==="set-pre"){
     var pv=document.getElementById("pre-v");
     state.fin.presupuesto = pv ? num(pv.value) : 0;
@@ -1302,7 +1318,8 @@ function addFijo(){
   var val=num(v.value);
   if(!txt){ t.focus(); return; }
   if(!val){ v.focus(); return; }
-  state.fin.fijos.push({t:txt, v:val, c:c?c.value:"Casa", on:true});
+  if(fijoTipo==="ingreso") state.fin.fijos.push({t:txt, v:val, i:true, on:true});
+  else state.fin.fijos.push({t:txt, v:val, c:c?c.value:"Casa", on:true});
   t.value=""; v.value="";
   render(); save();
   var n=document.getElementById("fijo-t"); if(n) n.focus();
